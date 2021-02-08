@@ -4,44 +4,57 @@
 \alias{simsl}
 \title{Single-index models with a surface-link (main function)}
 \usage{
-simsl(y, A, X, mu.hat = NULL, family = "gaussian", bs = c("ps",
-  "ps"), k = c(8, 8), knots = NULL, sp = NULL, method = "GCV.Cp",
-  beta.ini = NULL, beta.ini.gam = FALSE, ind.to.be.positive = 1,
-  pen.order = 0, lambda = 0, max.iter = 30, eps.iter = 10^{     -2
-  }, trace.iter = TRUE, center.X = TRUE, scale.X = TRUE,
-  si.main.effect = TRUE, bootstrap = FALSE, nboot = 200,
-  boot.conf = 0.95, seed = 1357)
+simsl(y, A, X, Xm = NULL, family = "gaussian", R = NULL,
+  bs = c("ps", "ps"), k = c(8, 8), m = list(NA, NA), sp = NULL,
+  knots = NULL, sep.A.effect = FALSE, mc = c(TRUE, FALSE),
+  method = "GCV.Cp", beta.ini = NULL, ind.to.be.positive = NULL,
+  random.effect = FALSE, z = NULL, gamma = 1, pen.order = 0,
+  lambda = 0, max.iter = 10, eps.iter = 0.01, trace.iter = TRUE,
+  center.X = TRUE, scale.X = TRUE, uncons.final.fit = TRUE,
+  bootstrap = FALSE, nboot = 200, boot.conf = 0.95, seed = 1357)
 }
 \arguments{
-\item{y}{a n-by-1 vector of treatment outcomes; y is assumed to follow an exponential family distribution; any distribution supported by \code{mgcv::gam}.}
+\item{y}{a n-by-1 vector of treatment outcomes; y is a member of the exponential family; any distribution supported by \code{mgcv::gam}; y can also be an ordinal categorial response with \code{R} categories taking a value from 1 to \code{R}.}
 
 \item{A}{a n-by-1 vector of treatment variable; each element is assumed to take a value on a continuum.}
 
 \item{X}{a n-by-p matrix of baseline covarates.}
 
-\item{mu.hat}{a n-by-1 vector of the fitted main effect term of the model provided by the user; the defult is \code{NULL} and it is taken as a vector of zeros; the optimal choice for this vector is h(E(y|X)), where h is the canonical link function.}
+\item{Xm}{a n-by-q design matrix associated with an X main effect model; the defult is \code{NULL} and it is taken as a vector of zeros}
 
-\item{family}{specifies the distribution of y; e.g., "gaussian", "binomial", "poisson"; the defult is "gaussian"; can be any family supported by \code{mgcv::gam}.}
+\item{family}{specifies the distribution of y; e.g., "gaussian", "binomial", "poisson"; can be any family supported by \code{mgcv::gam}; can also be "ordinal", for an ordinal categorical response y.}
 
-\item{bs}{type of basis for representing the treatment-specific smooths; the defult is "ps" (p-splines); any basis supported by \code{mgcv::gam} can be used, e.g., "cr" (cubic regression splines)}
+\item{R}{the number of response categories for the case of family = "ordinal".}
 
-\item{k}{basis dimension; the same number (k) is used for all treatment groups, however, the smooths of different treatments have different roughness parameters.}
+\item{bs}{basis type for the treatment (A) and single-index domains, respectively; the defult is "ps" (p-splines); any basis supported by \code{mgcv::gam} can be used, e.g., "cr" (cubic regression splines); see \code{mgcv::s} for detail.}
 
-\item{knots}{a list containing user specified knot values to be used for basis construction (for the treatment and the index variables, respectively).}
+\item{k}{basis dimension for the treatment (A) and single-index domains, respectively.}
 
-\item{sp}{a vector of smoothing parameters associated with the 2-dimensional smooth}
+\item{m}{a length 2 list (e.g., m=list(c(2,3), c(2,2))), for the treatment (A) and single-index domains, respectively, where each element specifies the order of basis and penalty (note, for bs="ps", c(2,3) means a 2nd order P-spline basis (cubic spline) and a 3rd order difference penalty; the default "NA" sets c(2,2) for each domain); see \code{mgcv::s} for details.}
+
+\item{sp}{a vector of smoothing parameters;  Smoothing parameters must be supplied in the order that the smooth terms appear in the model formula (i.e., A, and then the single-index); negative elements indicate that the parameter should be estimated, and hence a mixture of fixed and estimated parameters is possible; see \code{mgcv::gam} for detail.}
+
+\item{knots}{a list containing user-specified knot values to be used for basis construction, for the treatment (A) and single-index domains, respectively.}
+
+\item{sep.A.effect}{If \code{TRUE}, the g term of SIMSL is further decomposed into: the A main effect + the A-by-X interaction effect; the default is \code{FALSE}.}
+
+\item{mc}{a length 2 vector indicating which marginals (i.e., A and the single-index, respectively) should have centering (i.e., the sum-to-zero) constraints applied; the default is \code{mc = c(TRUE, FALSE)} (see \code{mgcv::te} for detail of the constraint), which is sufficient for the so-called "orthogonality" constraint of the SIMSL.}
 
 \item{method}{the smoothing parameter estimation method; "GCV.Cp" to use GCV for unknown scale parameter and Mallows' Cp/UBRE/AIC for known scale; any method supported by \code{mgcv::gam} can be used.}
 
-\item{beta.ini}{an initial solution of \code{beta.coef}; a p-by-1 vector; the defult is \code{NULL}.}
+\item{beta.ini}{an initial value for \code{beta.coef}; a p-by-1 vector; the defult is \code{NULL}, in which case a linear model estimate is used.}
 
-\item{beta.ini.gam}{if \code{TRUE}, employ a \code{mgcv::gam} smooth function representation of the variable A effect when inializing \code{beta.coef}; otherwise use a linear model representation for the A effect at initialization.}
+\item{ind.to.be.positive}{for identifiability of the solution \code{beta.coef}, the user can restrict the jth (e.g., j=1) component of \code{beta.coef} to be positive; by default, we match the "overall" sign of \code{beta.coef} with that of the linear estimate (i.e., the initial estimate), by restricting the inner product between the two to be positive.}
 
-\item{ind.to.be.positive}{for identifiability of the solution \code{beta.coef}, we restrict the jth component of \code{beta.coef} to be positive; by default \code{j=1}.}
+\item{random.effect}{if \code{TRUE}, as part of the main effects, the user can incorporate z-specific random intercepts.}
+
+\item{z}{a factor that specifies the random intercepts when \code{random.effect = TRUE}.}
+
+\item{gamma}{increase this beyond 1 to produce smoother models. \code{gamma} multiplies the effective degrees of freedom in the GCV or UBRE/AIC (see \code{mgcv::gam} for detail); the default is 1.}
 
 \item{pen.order}{0 indicates the ridge penalty; 1 indicates the 1st difference penalty; 2 indicates the 2nd difference penalty, used in a penalized least squares (LS) estimation of \code{beta.coef}.}
 
-\item{lambda}{a regularziation parameter associated with the penalized LS of \code{beta.coef}.}
+\item{lambda}{a regularization parameter associated with the penalized LS for \code{beta.coef} update.}
 
 \item{max.iter}{an integer specifying the maximum number of iterations for \code{beta.coef} update.}
 
@@ -53,7 +66,7 @@ simsl(y, A, X, mu.hat = NULL, family = "gaussian", bs = c("ps",
 
 \item{scale.X}{if \code{TRUE}, scale X to have unit variance.}
 
-\item{si.main.effect}{if \code{TRUE}, once the convergece in the estimates of \code{beta.coef} is reached, include the main effect associated with the fitted single-index (beta.coef'X) to the final surface-link estimate.}
+\item{uncons.final.fit}{if \code{TRUE}, once the convergence in the estimates of \code{beta.coef} is reached, include the main effect associated with the fitted single-index (beta.coef'X) to the final surface-link estimate.}
 
 \item{bootstrap}{if \code{TRUE}, compute bootstrap confidence intervals for the single-index coefficients, \code{beta.coef}; the default is \code{FALSE}.}
 
@@ -69,7 +82,7 @@ a list of information of the fitted SIMSL including
 }
 \description{
 \code{simsl} is the wrapper function for fitting a single-index model with a surface-link (SIMSL).
-The function estimates a linear combination (a single-index) of baseline covariates X, and models a nonlinear interactive structure between the single-index and a treatment variable defined on a continuum, via estimating a smooth link function on the index-treatment domain.
+The function estimates a linear combination (a single-index) of baseline covariates X, and models a nonlinear interactive structure between the single-index and a treatment variable defined on a continuum, by estimating a smooth link function on the index-treatment domain. The resulting \code{simsl} object can be used to estimate an optimal dose rule for a new patient with baseline clinical information.
 }
 \details{
 SIMSL captures the effect of covariates via a single-index and their interaction with the treatment via a 2-dimensional smooth link function.
@@ -84,13 +97,15 @@ set.seed(1234)
 n <- 200
 n.test <- 500
 
+
 ## simulation 1
 # generate training data
 p <- 30
 X <- matrix(runif(n*p,-1,1),ncol=p)
 A <- runif(n,0,2)
-f_opt <- 1 + 0.5*X[,2] + 0.5*X[,1]
-mu <- 8 + 4*X[,1] - 2*X[,2] - 2*X[,3] - 25*((f_opt-A)^2)
+D_opt <- 1 + 0.5*X[,2] + 0.5*X[,1]
+mean.fn <- function(X, D_opt, A){ 8 + 4*X[,1] - 2*X[,2] - 2*X[,3] - 25*((D_opt-A)^2) }
+mu <-   mean.fn(X, D_opt, A)
 y <- rnorm(length(mu),mu,1)
 # fit SIMSL
 simsl.obj <- simsl(y=y, A=A, X=X)
@@ -99,43 +114,41 @@ simsl.obj <- simsl(y=y, A=A, X=X)
 X.test <- matrix(runif(n.test*p,-1,1),ncol=p)
 A.test <- runif(n.test,0,2)
 f_opt.test <- 1 + 0.5*X.test[,2] + 0.5*X.test[,1]
-pred <- pred.simsl(simsl.obj, newx= X.test)  # make prediction based on the estimated SIMSL
+pred <- pred.simsl(simsl.obj, newX= X.test)  # make prediction based on the estimated SIMSL
 value <- mean(8 + 4*X.test[,1] - 2*X.test[,2] - 2*X.test[,3] - 25*((f_opt.test- pred$trt.rule)^2))
-value  # the "value" of the estimated treatment rule; the "oracle" value is 8.
+value  # "value" of the estimated treatment rule; the "oracle" value is 8.
+
 
 ## simulation 2
 p <- 10
 # generate training data
-X = matrix(runif(n*p,-1,1),ncol=p)
-A = runif(n,0,2)
-f_opt = I(X[,1] > -0.5)*I(X[,1] < 0.5)*0.6 + 1.2*I(X[,1] > 0.5) +
+X <- matrix(runif(n*p,-1,1),ncol=p)
+A <- runif(n,0,2)
+f_opt <- I(X[,1] > -0.5)*I(X[,1] < 0.5)*0.6 + 1.2*I(X[,1] > 0.5) +
  1.2*I(X[,1] < -0.5) + X[,4]^2 + 0.5*log(abs(X[,7])+1) - 0.6
-mu =   8 + 4*cos(2*pi*X[,2]) - 2*X[,4] - 8*X[,5]^3 - 15*abs(f_opt-A)
-y = rnorm(length(mu),mu,1)
+mu <-   8 + 4*cos(2*pi*X[,2]) - 2*X[,4] - 8*X[,5]^3 - 15*abs(f_opt-A)
+y  <- rnorm(length(mu),mu,1)
 Xq <- cbind(X, X^2)  # include a quadratic term
 # fit SIMSL
 simsl.obj <- simsl(y=y, A=A, X=Xq)
 
 # generate testing data
-X.test = matrix(runif(n.test*p,-1,1),ncol=p)
-A.test = runif(n.test,0,2)
-f_opt.test = I(X.test[,1] > -0.5)*I(X.test[,1] < 0.5)*0.6 + 1.2*I(X.test[,1] > 0.5) +
+X.test <- matrix(runif(n.test*p,-1,1),ncol=p)
+A.test <- runif(n.test,0,2)
+f_opt.test <- I(X.test[,1] > -0.5)*I(X.test[,1] < 0.5)*0.6 + 1.2*I(X.test[,1] > 0.5) +
  1.2*I(X.test[,1] < -0.5) + X.test[,4]^2 + 0.5*log(abs(X.test[,7])+1) - 0.6
 Xq.test <- cbind(X.test, X.test^2)
-pred <- pred.simsl(simsl.obj, newx= Xq.test)  # make prediction based on the estimated SIMSL
+pred <- pred.simsl(simsl.obj, newX= Xq.test)  # make prediction based on the estimated SIMSL
 value <- mean(8 + 4*cos(2*pi*X.test[,2]) - 2*X.test[,4] - 8*X.test[,5]^3 -
               15*abs(f_opt.test-pred$trt.rule))
-value  # the "value" of the estimated treatment rule; the "oracle" value is 8.
+value  # "value" of the estimated treatment rule; the "oracle" value is 8.
 
 
 \donttest{
  ### air pollution data application
  data(chicago); head(chicago)
  chicago <- chicago[,-3][complete.cases(chicago[,-3]), ]
- #plot(chicago$death)
- #chicago$death[2856:2859]
  chicago <- chicago[-c(2856:2859), ]  # get rid of the gross outliers in y
- #plot(chicago$pm10median)
  chicago <- chicago[-which.max(chicago$pm10median), ]  # get rid of the gross outliers in x
 
  # create lagged variables
@@ -150,14 +163,12 @@ value  # the "value" of the estimated treatment rule; the "oracle" value is 8.
  chicago$time.day <- round(chicago$time \%\%  365)
 
  # fit SIMSL for modeling the season-by-pm10 interactions on their effects on outcomes
- simsl.obj <- simsl(y = chicago$death, A = chicago$time.day, X=chicago[,7], bs= c("cc", "ps"),
-                    beta.ini.gam = TRUE, family=poisson(), method = "REML")
+ simsl.obj <- simsl(y=chicago$death, A=chicago$time.day, X=chicago[,7], bs=c("cc","ps"),
+                    ind.to.be.positive = 1, family="poisson", method = "REML",
+                    bootstrap =TRUE, nboot=1) # nboot =500
  simsl.obj$beta.coef  # the estimated single-index coefficients
  summary(simsl.obj$g.fit)
- #simsl.obj.boot <- simsl(y = chicago$death, A = chicago$time.day, X=chicago[,7],
- #                        bs= c("cc", "ps"), family=poisson(), beta.ini.gam = TRUE,
- #                        method = "REML", bootstrap = TRUE, nboot=5)  # nboot =500
- #simsl.obj.boot$boot.ci
+ round(simsl.obj$boot.ci,3)
 
 
  additive.fit  <- mgcv::gam(chicago$death ~
@@ -169,8 +180,9 @@ value  # the "value" of the estimated treatment rule; the "oracle" value is 8.
  plot(additive.fit, shift= additive.fit$coefficients[1], select = 1,
       xlab= expression(paste(beta*minute,"x")), ylab= " ",
       main = expression(paste("Individual ", beta*minute,"x effect")))
- mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=-135, phi = 30,color="heat", se=1,
-               ylab = "single-index", zlab = " ", main=expression(paste("Interaction surface ")))
+ mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=-135, phi = 30,
+               color="heat", se=2,ylab = "single-index", zlab = " ",
+               main=expression(paste("Interaction surface ")))
 
 
 
@@ -181,34 +193,23 @@ value  # the "value" of the estimated treatment rule; the "oracle" value is 8.
  y <- -abs(warfarin$INR - 2.5)  # the target INR is 2.5
  X[,1:3] <- scale(X[,1:3]) # standardize continuous variables
 
- # Estimate the main effect, using an additive model for continous variables and
- # a linear model for the indicator variables
+ # Estimate the main effect, using an additive model
  mu.fit <- mgcv::gam(y-mean(y)  ~ X[, 4:13] +
                        s(X[,1], k=5, bs="ps")+
                        s(X[,2], k=5, bs="ps") +
                        s(X[,3], k=5, bs="ps"), method="REML")
  summary(mu.fit)
  mu.hat <- predict(mu.fit)
- # fit SIMSL (we do not scale/center X for the interpretabilty of the indicator variables in X).
- simsl.obj <- simsl(y, A, X, mu.hat=mu.hat, scale.X = FALSE, center.X=FALSE, method="REML")
+ # fit SIMSL
+ simsl.obj <- simsl(y, A, X, Xm= mu.hat, scale.X = FALSE, center.X=FALSE, method="REML",
+                    bootstrap = TRUE, nboot=1) # nboot = 500
  simsl.obj$beta.coef
- #simsl.obj.boot <- simsl(y, A, X, mu.hat=mu.hat, scale.X=FALSE, center.X=FALSE,
- #                        bootstrap = TRUE, nboot=5, method="REML")  # nboot = 500
- #simsl.obj.boot$boot.ci
-
-
- additive.fit  <- mgcv::gam(y-mu.hat ~
-                              s(A, k=8, bs="ps") +
-                              s(simsl.obj$g.fit$model[,3], k=8, bs="ps"),
-                           method = "REML" )
- plot(additive.fit, shift= additive.fit$coefficients[1], select=1,
-      ylab= "Y", main = expression(paste("Individual A effect")))
- plot(additive.fit, shift= additive.fit$coefficients[1], select=2,
-      xlab= expression(paste(beta*minute,"x")), ylab= " ",
-      main = expression(paste("Individual ", beta*minute,"x effect")))
- mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=55, phi = 30,color="heat", se=1,
-               ylab = "single-index", zlab = "Y", main=expression(paste("Interaction surface ")))
+ round(simsl.obj$boot.ci,3)
+ mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=55, phi = 30,
+               color="heat", se=2, ylab = "single-index", zlab = "Y",
+               main=expression(paste("Interaction surface ")))
 }
+
 }
 \seealso{
 \code{pred.simsl},  \code{fit.simsl}

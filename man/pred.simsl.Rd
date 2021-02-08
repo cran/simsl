@@ -4,15 +4,19 @@
 \alias{pred.simsl}
 \title{SIMSL prediction function}
 \usage{
-pred.simsl(simsl.obj, newx, newA = NULL, L = 30, type = "response",
-  maximize = TRUE)
+pred.simsl(simsl.obj, newX = NULL, newA = NULL, newXm = NULL,
+  single.index = NULL, L = 50, type = "link", maximize = TRUE)
 }
 \arguments{
 \item{simsl.obj}{a \code{simsl} object}
 
-\item{newx}{a (n-by-p) matrix of new values for the covariates X at which predictions are to be made.}
+\item{newX}{a (n-by-p) matrix of new values for the covariates X at which predictions are to be made.}
 
 \item{newA}{a (n-by-L) matrix of new values for the treatment A at which predictions are to be made.}
+
+\item{newXm}{a (n-by-q) matrix of new values for the covariates associated with the fitted main effect Xm at which predictions are to be made.}
+
+\item{single.index}{a length n vector specifying new values for the single-index at which predictions are to be made; the default is \code{NULL}.}
 
 \item{L}{when \code{newA=NULL}, a value specifying the length of the grid of A at which predictions are to be made.}
 
@@ -21,7 +25,7 @@ pred.simsl(simsl.obj, newx, newA = NULL, L = 30, type = "response",
 \item{maximize}{the default is \code{TRUE}, assuming a larger value of the outcome is better; if \code{FALSE}, a smaller value is assumed to be prefered.}
 }
 \value{
-\item{pred.new}{a (n-by-L) matrix of predicted values; each column represents a treatment option.}
+\item{pred.new}{a (n-by-L) matrix of predicted values; each column represents a treatment dose.}
 \item{trt.rule}{a (n-by-1) vector of suggested treatment assignments}
 }
 \description{

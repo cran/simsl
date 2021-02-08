@@ -4,12 +4,10 @@
 \alias{der.link}
 \title{A subfunction used in estimation}
 \usage{
-der.link(g.fit, arg.number = 2, eps = 10^(-6))
+der.link(g.fit, eps = 10^(-4))
 }
 \arguments{
 \item{g.fit}{a \code{mgcv::gam} object}
-
-\item{arg.number}{the argument of \code{g.fit} that is taken derivative with respect to. The default is \code{arg.number=2} (i.e., take deriviative with respect to the single-index).}
 
 \item{eps}{a small finite difference used in numerical differentiation.}
 }
