@@ -1,7 +1,7 @@
-069f69c15ebb6625487062035d55ef1f *DESCRIPTION
+34a912224a5299a3b9245f37f71e483d *DESCRIPTION
 5aa1f84c2492395d3f412c4213fe1346 *NAMESPACE
 182a57b376e658c1b3d96154a3292986 *R/chicago.R
-f90a5a24eb0dc1b4d57111838778e8f7 *R/simsl.main.R
+327e9800bc1c0bbe87152602b5e7597d *R/simsl.main.R
 2acf828f5bc296a9b46e67032a4f8832 *R/warfarin.R
 b67d4f8e32e5e20e8ab9695c53d2af3b *data/chicago.RData
 55a52dcd1e3d86b460e88aa33e4f71b8 *data/warfarin.RData
@@ -9,5 +9,5 @@ b67d4f8e32e5e20e8ab9695c53d2af3b *data/chicago.RData
 35b3f278411ce49ba584a32f3e55fe3e *man/der.link.Rd
 abb350bc8433992a572d8049f333337b *man/fit.simsl.Rd
 d521d98dc0fb452a68f4d8f1e5667843 *man/pred.simsl.Rd
-636cc38b22a95b2d5891eb698985cd3e *man/simsl.Rd
+3f8fc7ffaba13f17b1b2f266a094f107 *man/simsl.Rd
 a432d8f9702614e663b567643f65c59e *man/warfarin.Rd

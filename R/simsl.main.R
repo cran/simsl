@@ -56,13 +56,13 @@
 #'
 
 #'set.seed(1234)
-#'n <- 200
 #'n.test <- 500
 #'
 #'
 #'## simulation 1
 #'# generate training data
 #'p <- 30
+#'n <- 200
 #'X <- matrix(runif(n*p,-1,1),ncol=p)
 #'A <- runif(n,0,2)
 #'D_opt <- 1 + 0.5*X[,2] + 0.5*X[,1]
@@ -83,6 +83,7 @@
 #'
 #'## simulation 2
 #'p <- 10
+#'n <- 400
 #'# generate training data
 #'X <- matrix(runif(n*p,-1,1),ncol=p)
 #'A <- runif(n,0,2)
@@ -127,24 +128,13 @@
 #'  # fit SIMSL for modeling the season-by-pm10 interactions on their effects on outcomes
 #'  simsl.obj <- simsl(y=chicago$death, A=chicago$time.day, X=chicago[,7], bs=c("cc","ps"),
 #'                     ind.to.be.positive = 1, family="poisson", method = "REML",
-#'                     bootstrap =TRUE, nboot=1) # nboot =500
+#'                     bootstrap =FALSE) # bootstrap = TRUE
 #'  simsl.obj$beta.coef  # the estimated single-index coefficients
 #'  summary(simsl.obj$g.fit)
-#'  round(simsl.obj$boot.ci,3)
-#'
-#'
-#'  additive.fit  <- mgcv::gam(chicago$death ~
-#'                               s(simsl.obj$g.fit$model[,3], k=8, bs="ps") +
-#'                               s(chicago$time.day, k=8, bs="cc"),
-#'                             family = poisson(), method = "REML")
-#'  plot(additive.fit, shift= additive.fit$coefficients[1], select=2,
-#'       ylab= "Linear predictor", xlab= "A", main = expression(paste("Individual A effect")))
-#'  plot(additive.fit, shift= additive.fit$coefficients[1], select = 1,
-#'       xlab= expression(paste(beta*minute,"x")), ylab= " ",
-#'       main = expression(paste("Individual ", beta*minute,"x effect")))
+#'  #round(simsl.obj$boot.ci,3)
 #'  mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=-135, phi = 30,
 #'                color="heat", se=2,ylab = "single-index", zlab = " ",
-#'                main=expression(paste("Interaction surface ")))
+#'                main=expression(paste("Interaction surface g")))
 #'
 #'
 #'
@@ -164,12 +154,12 @@
 #'  mu.hat <- predict(mu.fit)
 #'  # fit SIMSL
 #'  simsl.obj <- simsl(y, A, X, Xm= mu.hat, scale.X = FALSE, center.X=FALSE, method="REML",
-#'                     bootstrap = TRUE, nboot=1) # nboot = 500
+#'                     bootstrap = FALSE) # bootstrap = TRUE
 #'  simsl.obj$beta.coef
-#'  round(simsl.obj$boot.ci,3)
-#'  mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=55, phi = 30,
+#'  #round(simsl.obj$boot.ci,3)
+#'  mgcv::vis.gam(simsl.obj$g.fit, view=c("A","single.index"), theta=52, phi = 18,
 #'                color="heat", se=2, ylab = "single-index", zlab = "Y",
-#'                main=expression(paste("Interaction surface ")))
+#'                main=expression(paste("Interaction surface g")))
 #'}
 #'
 simsl <- function(y, # a n-by-1 vector of treatment outcomes; y is a member of the exponential family; any distribution supported by mgcv::gam.
